@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hasta_takip/widget/bottom_sheet.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,10 +14,11 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
+      backgroundColor: const Color(0xFFE3E3E3),
+
       appBar: AppBar(
         backgroundColor: const Color(0xFF0EBE80),
-        elevation: 0,
+
         centerTitle: true,
         title: const Text(
           "Kliniğim Cepte",
@@ -36,8 +38,11 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 8),
             const Text(
-              "Bugün randevularını aşağıdan takip edebilirsin.",
-              style: TextStyle(color: Colors.grey, fontSize: 15),
+              "Günlük hasta akışını buradan kolayca takip edebilirsin.",
+              style: TextStyle(
+                color: Color.fromARGB(255, 70, 70, 70),
+                fontSize: 15,
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -69,31 +74,6 @@ class _HomePageState extends State<HomePage> {
             _hastaKart("Rüştü Dinç", "10:00 - Diş Temizliği"),
             _hastaKart("Furkan Uyar", "11:30 - Kontrol"),
             _hastaKart("Kasım Kalaycı", "14:00 - Kanal Tedavisi"),
-
-            const SizedBox(height: 40),
-
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.add, color: Colors.white),
-                label: const Text(
-                  "Yeni Randevu Ekle",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0EBE80),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                    horizontal: 24,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -114,23 +94,33 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profil"),
         ],
       ),
+      floatingActionButton: SizedBox(
+        child: FloatingActionButton(
+          onPressed: () {
+            MyBottomSheet1().showSheet(context);
+          },
+          child: const Icon(Icons.add, color: Colors.white),
+
+          backgroundColor: const Color(0xFF0EBE80),
+        ),
+      ),
     );
   }
 
-  // 🔹 Yardımcı widgetlar
+  //Yardımcı widgetlar
 
   Widget _istatistikKarti(String baslik, String deger, IconData ikon) {
     return Container(
       width: 165,
-      height: 100,
+      height: 120,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black,
             blurRadius: 6,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 1),
           ),
         ],
       ),

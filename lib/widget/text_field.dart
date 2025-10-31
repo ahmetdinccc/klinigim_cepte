@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 class MyTextField extends StatefulWidget {
-  final String textt;
+  final String text;
   final TextEditingController controller;
   final Function(String)? onchanged;
   final bool isPassword;
 
   const MyTextField({
     super.key,
-    required this.textt,
+    required this.text,
     required this.controller,
     required this.onchanged,
     this.isPassword = false,
@@ -34,7 +34,7 @@ class _MyTextFieldState extends State<MyTextField> {
       onChanged: widget.onchanged,
       obscureText: _obscureText,
       decoration: InputDecoration(
-        labelText: widget.textt,
+        labelText: widget.text,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         suffixIcon: widget.isPassword
             ? IconButton(

@@ -40,7 +40,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 840,
+      height: MediaQuery.of(context).size.height,
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
@@ -100,13 +100,13 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
           child: Column(
             children: [
               MyTextField(
-                textt: "E-Posta",
+                text: "E-Posta",
                 controller: _emailControllersecretary,
                 onchanged: (value) {},
               ),
               SizedBox(height: 10),
               MyTextField(
-                textt: "Şifre",
+                text: "Şifre",
                 controller: _passwordControllersecretary,
                 onchanged: (value) {},
               ),
@@ -136,32 +136,34 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
       // Doktor giriş formu
       return Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            MyTextField(
-              textt: "E-Posta",
-              controller: _emailControllerdoctor,
-              onchanged: (value) {},
-            ),
-            SizedBox(height: 10),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              MyTextField(
+                text: "E-Posta",
+                controller: _emailControllerdoctor,
+                onchanged: (value) {},
+              ),
+              SizedBox(height: 10),
 
-            MyTextField(
-              textt: "Şifre",
-              controller: _passwordControllerdoctor,
-              onchanged: (value) {},
-            ),
-            const SizedBox(height: 20),
-            MyButton(
-              buttonclick: () {},
-              buttontext: "Giriş Yap",
-              textcolor: Colors.white,
-              backcolor: const Color(0xFF02714A),
-              height: 54,
-              width: double.infinity,
-            ),
+              MyTextField(
+                text: "Şifre",
+                controller: _passwordControllerdoctor,
+                onchanged: (value) {},
+              ),
+              const SizedBox(height: 20),
+              MyButton(
+                buttonclick: () {},
+                buttontext: "Giriş Yap",
+                textcolor: Colors.white,
+                backcolor: const Color(0xFF02714A),
+                height: 54,
+                width: double.infinity,
+              ),
 
-            Image.asset('assets/doctor1.jpg'),
-          ],
+              Image.asset('assets/doctor1.jpg'),
+            ],
+          ),
         ),
       );
     }
@@ -177,35 +179,35 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
           child: Column(
             children: [
               MyTextField(
-                textt: "Ad - Soyad",
+                text: "Ad - Soyad",
                 controller: _adControllersecretary,
                 onchanged: (value) {},
               ),
               SizedBox(height: 10),
 
               MyTextField(
-                textt: "E-Posta",
+                text: "E-Posta",
                 controller: _emailControllersecretary,
                 onchanged: (value) {},
               ),
               SizedBox(height: 10),
 
               MyTextField(
-                textt: "Telefon Numarası",
+                text: "Telefon Numarası",
                 controller: _noControllersecretary,
                 onchanged: (value) {},
               ),
               SizedBox(height: 10),
 
               MyTextField(
-                textt: "Şifre",
+                text: "Şifre",
                 controller: _passwordControllersecretary,
                 onchanged: (value) {},
               ),
               SizedBox(height: 10),
 
               MyTextField(
-                textt: "Şifre(Tekrar)",
+                text: "Şifre(Tekrar)",
                 controller: _passwordControllersecretary,
                 onchanged: (value) {},
               ),
@@ -233,35 +235,35 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
           child: Column(
             children: [
               MyTextField(
-                textt: "Ad - Soyad",
+                text: "Ad - Soyad",
                 controller: _adControllerdoctor,
                 onchanged: (value) {},
               ),
               SizedBox(height: 10),
 
               MyTextField(
-                textt: "E-Posta",
+                text: "E-Posta",
                 controller: _emailControllerdoctor,
                 onchanged: (value) {},
               ),
               SizedBox(height: 10),
 
               MyTextField(
-                textt: "Telefon Numarası",
+                text: "Telefon Numarası",
                 controller: _noControllerdoctor,
                 onchanged: (value) {},
               ),
               SizedBox(height: 10),
 
               MyTextField(
-                textt: "Şifre",
+                text: "Şifre",
                 controller: _passwordControllerdoctor,
                 onchanged: (value) {},
               ),
               SizedBox(height: 10),
 
               MyTextField(
-                textt: "Şifre(Tekrar)",
+                text: "Şifre(Tekrar)",
                 controller: _passwordControllerdoctor,
                 onchanged: (value) {},
               ),
