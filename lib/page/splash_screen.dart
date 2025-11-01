@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hasta_takip/bloc/my_auth_cubit.dart';
 import 'package:hasta_takip/widget/auth_bottom_sheet.dart';
 import 'package:hasta_takip/widget/button.dart';
 import 'package:hasta_takip/widget/meeting_bottom_sheet.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -34,8 +36,15 @@ class SplashScreen extends StatelessWidget {
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
-                            builder: (context) =>
-                                const AuthBottomSheet(userType: "Danışman"),
+                            builder: (context) {
+                              return BlocProvider.value(
+                                value: context.read<AuthCubit>(),
+                                child: AuthBottomSheet(
+                                  userType: "danışman",
+                                  parentContext: context,
+                                ),
+                              );
+                            },
                           );
                         },
                         buttontext: "Danışman",
@@ -58,8 +67,15 @@ class SplashScreen extends StatelessWidget {
                                 top: Radius.circular(25),
                               ),
                             ),
-                            builder: (context) =>
-                                const AuthBottomSheet(userType: "Doktor"),
+                            builder: (context) {
+                              return BlocProvider.value(
+                                value: context.read<AuthCubit>(),
+                                child: AuthBottomSheet(
+                                  userType: "doktor",
+                                  parentContext: context,
+                                ),
+                              );
+                            },
                           );
                         },
                         buttontext: "Doktor",
@@ -81,7 +97,7 @@ class SplashScreen extends StatelessWidget {
                               ),
                             ),
                             builder: (context) =>
-                                const MyBottomSheet(userType: "Hasta"),
+                                const MyBottomSheet(userType: "hasta"),
                           );
                         },
                         buttontext: "Hasta",
@@ -89,6 +105,32 @@ class SplashScreen extends StatelessWidget {
                         backcolor: const Color.fromARGB(255, 63, 213, 160),
                         height: 54,
                         width: double.infinity,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(25),
+                              ),
+                            ),
+                            builder: (context) {
+                              return BlocProvider.value(
+                                value: context.read<AuthCubit>(),
+                                child: AuthBottomSheet(
+                                  parentContext: context,
+                                  userType: "gelistirici",
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        child: const Text(
+                          "Geliştirici",
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       ),
                     ],
                   ),

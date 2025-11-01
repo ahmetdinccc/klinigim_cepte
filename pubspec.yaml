@@ -38,6 +38,14 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_bloc: ^9.1.1
+  shared_preferences: ^2.5.3
+  http: ^0.13.6
+  sqflite: ^2.3.0
+  path: ^1.8.0
+  supabase_flutter: ^2.9.0
+  equatable: ^2.0.7
+  another_flushbar: ^1.12.30
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -59,17 +67,8 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/image.png
-    - assets/image2.png
-    - assets/image3.png
-    - assets/secretary1.jpg
-    - assets/secretary2.jpg
-    - assets/doctor1.jpg 
-    - assets/doctor2.jpg 
-    - assets/add.png
-    - assets/list.png
-    - assets/sick.jpg
-    - assets/sick2.jpg
+    - assets/
+  
     
 
 
