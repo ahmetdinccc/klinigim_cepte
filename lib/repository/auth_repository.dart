@@ -1,79 +1,114 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// login + kayıt + rol çekme için ortak sınıf
 class AuthRepository {
   final SupabaseClient _client;
   AuthRepository(this._client);
 
-  /// tek işi: email+şifre ile login ve rolü çekmek
+  /// -------------------------
+  /// 1) LOGIN (email + şifre)
+  /// -------------------------
   Future<AuthResult> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    final res = await _client.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      final res = await _client.auth.signInWithPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
 
-    if (res.user == null) {
-      throw Exception("Kullanıcı bulunamadı");
+      final user = res.user;
+      if (user == null) {
+        throw Exception("Kullanıcı bulunamadı");
+      }
+
+      // user_roles tablosundan rolü çek
+      final roleRow = await _client
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      // boş gelirse developer diyelim
+      final role = (roleRow?['role'] as String? ?? 'developer').trim();
+
+      return AuthResult(user: user, role: role);
+    } on AuthException catch (e) {
+      // Supabase'in kendi hatası
+      throw AuthException(e.message, statusCode: e.statusCode);
+    } catch (e) {
+      throw Exception("Giriş sırasında hata: $e");
     }
-
-    // role tablosundan çek
-    final roleRow = await _client
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', res.user!.id)
-        .maybeSingle();
-
-    print('USER ROLE ROW: $roleRow');
-    final role = roleRow?['role'] as String? ?? 'unknown';
-
-    return AuthResult(user: res.user!, role: role);
   }
 
-  /// geliştirici panelinden “doktor / danışman / geliştirici” eklemek için
+  /// ------------------------------------------------
+  /// 2) SIGN UP (geliştirici panelinden kullanıcı ekle)
+  ///    - auth.users'a user ekler
+  ///    - user_roles tablosuna rol yazar
+  ///    - (varsa) profiles tablosuna extra info yazar
+  /// ------------------------------------------------
   Future<AuthResult> signUpWithRole({
     required String email,
     required String password,
     required String fullName,
     required String phone,
-    required String role, // doctor | advisor | developer
+    required String role, // "doctor" | "advisor" | "developer"
     String? clinicId,
   }) async {
-    // 1) auth.users'a ekle
-    final res = await _client.auth.signUp(email: email, password: password);
+    // 1) önce auth'a kaydet
+    final res = await _client.auth.signUp(
+      email: email.trim().toLowerCase(),
+      password: password.trim(),
+      data: {
+        'full_name': fullName,
+        'phone': phone,
+        'role': role.trim().toLowerCase(),
+      },
+    );
 
-    if (res.user == null) {
-      throw Exception("Kullanıcı oluşturulamadı");
+    final user = res.user;
+    if (user == null) {
+      throw Exception("Kullanıcı oluşturulamadı (email doğrulama açık olabilir)");
     }
 
-    final userId = res.user!.id;
+    final userId = user.id;
 
-    // 2) user_roles tablosuna rolü yaz
-    await _client.from('user_roles').insert({'user_id': userId, 'role': role});
-
-    // 3) profiles tablosuna ekstra bilgileri yaz (varsa)
-    await _client.from('profiles').insert({
-      'id': userId,
-      'full_name': fullName,
-      'phone': phone,
-      'role': role,
-      'clinic_id': clinicId,
+    // 2) user_roles tablosuna yaz
+    await _client.from('user_roles').insert({
+      'user_id': userId,
+      'role': role.trim().toLowerCase(),
+      if (clinicId != null) 'clinic_id': clinicId,
     });
 
-    return AuthResult(user: res.user!, role: role);
+    // 3) profiles tablosuna da yazmak istersen (RLS açıksa hata verebilir)
+    try {
+      await _client.from('profiles').insert({
+        'id': userId,
+        'full_name': fullName,
+        'phone': phone,
+        'role': role.trim().toLowerCase(),
+        'clinic_id': clinicId,
+      });
+    } catch (e) {
+      // profiles kapalıysa app patlamasın
+      // debug için bakarsın
+      // print('profiles insert error: $e');
+    }
+
+    return AuthResult(user: user, role: role.trim().toLowerCase());
   }
 
+  /// -------------------------
+  /// 3) LOGOUT
+  /// -------------------------
   Future<void> signOut() async {
     await _client.auth.signOut();
   }
 }
 
-/// dart 2/3 farkı olmasın diye küçük model
+/// küçük model
 class AuthResult {
   final User user;
   final String role;
-
   AuthResult({required this.user, required this.role});
 }

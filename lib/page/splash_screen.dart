@@ -40,7 +40,7 @@ class SplashScreen extends StatelessWidget {
                               return BlocProvider.value(
                                 value: context.read<AuthCubit>(),
                                 child: AuthBottomSheet(
-                                  userType: "danışman",
+                                  userType: "Danışman",
                                   parentContext: context,
                                 ),
                               );
@@ -71,7 +71,7 @@ class SplashScreen extends StatelessWidget {
                               return BlocProvider.value(
                                 value: context.read<AuthCubit>(),
                                 child: AuthBottomSheet(
-                                  userType: "doktor",
+                                  userType: "Doktor",
                                   parentContext: context,
                                 ),
                               );
@@ -97,7 +97,7 @@ class SplashScreen extends StatelessWidget {
                               ),
                             ),
                             builder: (context) =>
-                                const MyBottomSheet(userType: "hasta"),
+                                const MyBottomSheet(userType: "Hasta"),
                           );
                         },
                         buttontext: "Hasta",
@@ -121,7 +121,7 @@ class SplashScreen extends StatelessWidget {
                                 value: context.read<AuthCubit>(),
                                 child: AuthBottomSheet(
                                   parentContext: context,
-                                  userType: "gelistirici",
+                                  userType: "Gelistirici",
                                 ),
                               );
                             },

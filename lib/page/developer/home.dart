@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hasta_takip/widget/bottom_sheet.dart';
+import 'package:hasta_takip/widget/role_bottom_sheet.dart';
 
 class HomeDeveloper extends StatefulWidget {
   const HomeDeveloper({super.key});
@@ -18,7 +18,7 @@ class _HomeDeveloperState extends State<HomeDeveloper> {
 
       appBar: AppBar(
         backgroundColor: const Color(0xFF0EBE80),
-
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text(
           "Kliniğim Cepte",
@@ -36,15 +36,7 @@ class _HomeDeveloperState extends State<HomeDeveloper> {
               "Hoş geldin, Ahmet 👋",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              "Günlük hasta akışını buradan kolayca takip edebilirsin.",
-              style: TextStyle(
-                color: Color.fromARGB(255, 70, 70, 70),
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 15),
 
             // 🔸 İstatistik kartları
             Row(
@@ -70,8 +62,6 @@ class _HomeDeveloperState extends State<HomeDeveloper> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
-
-           
           ],
         ),
       ),
@@ -95,7 +85,7 @@ class _HomeDeveloperState extends State<HomeDeveloper> {
       floatingActionButton: SizedBox(
         child: FloatingActionButton(
           onPressed: () {
-            MyBottomSheet1().showSheet(context);
+            showRoleBottomSheet(context, "geliştirici");
           },
           child: const Icon(Icons.add, color: Colors.white),
 
@@ -149,6 +139,4 @@ class _HomeDeveloperState extends State<HomeDeveloper> {
       ),
     );
   }
-
-  
 }

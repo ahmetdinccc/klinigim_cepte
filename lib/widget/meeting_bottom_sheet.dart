@@ -3,7 +3,8 @@ import 'package:hasta_takip/widget/button.dart';
 import 'package:hasta_takip/widget/text_field.dart';
 
 class MyBottomSheet extends StatefulWidget {
-  final String userType; // "Danışman" veya "Doktor" veya "Hasta"
+  /// "Danışman" | "Doktor" | "Hasta" | "Geliştirici"
+  final String userType;
 
   const MyBottomSheet({super.key, required this.userType});
 
@@ -15,31 +16,52 @@ class _MyBottomSheetState extends State<MyBottomSheet>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  String? selectedDoctor; // seçilen doktor dropdown değeri
-  String? selectedService; // seçilen hizmet dropdown değeri
+  // ortak dropdown
+  String? selectedDoctor;
+  String? selectedService;
 
-  // Doktor kontrolörleri
-  final TextEditingController _emailControllerdoctor = TextEditingController();
-  final TextEditingController _passwordControllerdoctor =
-      TextEditingController();
-  final TextEditingController _adControllerdoctor = TextEditingController();
-  final TextEditingController _noControllerdoctor = TextEditingController();
+  // hasta / danışman form controller’ları
+  final _tcController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
 
-  // Danışman / Hasta kontrolörleri
-  final TextEditingController _tcControllersick = TextEditingController();
-  final TextEditingController _passwordControllersecretary =
-      TextEditingController();
-  final TextEditingController _adControllersick = TextEditingController();
-  final TextEditingController _noControllersick = TextEditingController();
+  // geliştirici – danışman/doktor ekleme
+  final _devAdvisorName = TextEditingController();
+  final _devAdvisorEmail = TextEditingController();
+  final _devAdvisorPass = TextEditingController();
+
+  final _devDoctorName = TextEditingController();
+  final _devDoctorEmail = TextEditingController();
+  final _devDoctorPass = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+
     _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    _tcController.dispose();
+    _nameController.dispose();
+    _phoneController.dispose();
+    _devAdvisorName.dispose();
+    _devAdvisorEmail.dispose();
+    _devAdvisorPass.dispose();
+    _devDoctorName.dispose();
+    _devDoctorEmail.dispose();
+    _devDoctorPass.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final role = widget.userType.toLowerCase();
+    final isDeveloper =
+        role == 'geliştirici' || role == 'gelistirici' || role == 'developer';
+
     return Container(
       height: MediaQuery.of(context).size.height,
       decoration: const BoxDecoration(
@@ -59,32 +81,46 @@ class _MyBottomSheetState extends State<MyBottomSheet>
           ),
           const SizedBox(height: 20),
           Text(
-            "${widget.userType} ",
+            "Danışman / Doktor Ekle",
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
 
-          // Sekmeler
-          TabBar(
-            controller: _tabController,
-            labelColor: Colors.teal,
-            unselectedLabelColor: Colors.grey,
-            indicatorColor: Colors.teal,
-            tabs: const [
-              Tab(text: "Randevu Al"),
-              Tab(text: "Randevu Geçmişi"),
-            ],
-          ),
+          if (isDeveloper)
+            TabBar(
+              controller: _tabController,
+              labelColor: Colors.teal,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Colors.teal,
+              tabs: const [
+                Tab(text: "Danışman Ekle"),
+                Tab(text: "Doktor Ekle"),
+              ],
+            )
+          else
+            TabBar(
+              controller: _tabController,
+              labelColor: Colors.teal,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Colors.teal,
+              tabs: const [
+                Tab(text: "Randevu Al"),
+                Tab(text: "Randevu Geçmişi"),
+              ],
+            ),
 
-          // içerik
-          //İçerik
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: [
-                _buildmeetingTab(), // Ortak login ekranı
-                _buildpastappointmentTab(), // Kullanıcı türüne göre farklı register
-              ],
+              children: isDeveloper
+                  ? [
+                      _buildDanismanDoktorUserForm(), // Danışman / Doktor Ekle
+                      _buildDoktorUserForm(), // Klinik Ekle
+                    ]
+                  : [
+                      _buildMeetingTab(role), // Randevu Al
+                      _buildHistoryTab(role), // Randevu Geçmişi
+                    ],
             ),
           ),
         ],
@@ -92,32 +128,33 @@ class _MyBottomSheetState extends State<MyBottomSheet>
     );
   }
 
-  // ✅ RANDEVU AL TAB’I
-  Widget _buildmeetingTab() {
-    // HASTA RANDEVU GİRİŞİ
-    final items1 = ['Ahmet Dinç', 'Rüştü Dinç', 'Mehmet Ak', 'Ali Veli'];
-    final items2 = ['Genel Muayene', 'Diş Temizliği', 'Dolgu', 'Kontrol'];
+  //randevu ekleme tabı
+  Widget _buildMeetingTab(String role) {
+    final doctorItems = ['Ahmet Dinç', 'Rüştü Dinç', 'Mehmet Ak', 'Ali Veli'];
+    final serviceItems = ['Genel Muayene', 'Diş Temizliği', 'Dolgu', 'Kontrol'];
+    final Items = ['doktor', 'danışman'];
+
     return Padding(
       padding: const EdgeInsets.all(20),
       child: SingleChildScrollView(
         child: Column(
           children: [
             MyTextField(
-              text: "TC Kimlik No",
-              controller: _tcControllersick,
-              onchanged: (value) {},
+              text: role == 'doktor' ? "Hasta TC Kimlik No" : "TC Kimlik No",
+              controller: _tcController,
+              onchanged: (_) {},
             ),
             const SizedBox(height: 10),
             MyTextField(
-              text: "Ad Soyad",
-              controller: _adControllersick,
-              onchanged: (value) {},
+              text: role == 'doktor' ? "Hasta Ad Soyad" : "Ad Soyad",
+              controller: _nameController,
+              onchanged: (_) {},
             ),
             const SizedBox(height: 10),
             MyTextField(
               text: "Telefon Numarası",
-              controller: _noControllersick,
-              onchanged: (value) {},
+              controller: _phoneController,
+              onchanged: (_) {},
             ),
             const SizedBox(height: 10),
             DropdownButtonFormField<String>(
@@ -127,23 +164,17 @@ class _MyBottomSheetState extends State<MyBottomSheet>
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
               ),
-              items: items1
-                  .map(
-                    (item) => DropdownMenuItem(value: item, child: Text(item)),
-                  )
+              items: doctorItems
+                  .map((d) => DropdownMenuItem(value: d, child: Text(d)))
                   .toList(),
-              onChanged: (value) {
+              onChanged: (val) {
                 setState(() {
-                  selectedDoctor = value;
+                  selectedDoctor = val;
                 });
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: selectedService,
               decoration: InputDecoration(
@@ -151,25 +182,21 @@ class _MyBottomSheetState extends State<MyBottomSheet>
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
               ),
-              items: items2
-                  .map(
-                    (item) => DropdownMenuItem(value: item, child: Text(item)),
-                  )
+              items: serviceItems
+                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                   .toList(),
-              onChanged: (value) {
+              onChanged: (val) {
                 setState(() {
-                  selectedService = value;
+                  selectedService = val;
                 });
               },
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             MyButton(
-              buttonclick: () {},
+              buttonclick: () {
+                // TODO: randevu kaydı
+              },
               buttontext: "Randevu Oluştur",
               textcolor: Colors.white,
               backcolor: const Color(0xFF0EBE80),
@@ -184,25 +211,23 @@ class _MyBottomSheetState extends State<MyBottomSheet>
     );
   }
 
-  // ✅ RANDEVU GEÇMİŞİ TAB’I
-  Widget _buildpastappointmentTab() {
-    // HASTA RANDEVU GEÇMİŞİ
-
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: SingleChildScrollView(
+  //randevu geçmişi tabı
+  Widget _buildHistoryTab(String role) {
+    // danışman
+    if (role == 'danışman' || role == 'danisman' || role == 'advisor') {
+      return Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             MyTextField(
-              text: "TC Kimlik No",
-              controller: _tcControllersick,
-              onchanged: (value) {},
+              text: "Hasta TC / Ad",
+              controller: _tcController,
+              onchanged: (_) {},
             ),
             const SizedBox(height: 10),
-
             MyButton(
               buttonclick: () {},
-              buttontext: "Geçmiş Randevuları Gör",
+              buttontext: "Geçmiş Randevuları Getir",
               textcolor: Colors.white,
               backcolor: const Color(0xFF0EBE80),
               height: 54,
@@ -210,6 +235,117 @@ class _MyBottomSheetState extends State<MyBottomSheet>
             ),
             const SizedBox(height: 20),
             Image.asset('assets/sick2.jpg'),
+          ],
+        ),
+      );
+    }
+
+    // hasta veya diğer
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          MyTextField(
+            text: "Hasta TC / Ad",
+            controller: _tcController,
+            onchanged: (_) {},
+          ),
+          const SizedBox(height: 10),
+          MyButton(
+            buttonclick: () {},
+            buttontext: "Geçmiş Randevuları Getir",
+            textcolor: Colors.white,
+            backcolor: const Color(0xFF0EBE80),
+            height: 54,
+            width: double.infinity,
+          ),
+          const SizedBox(height: 20),
+          Image.asset('assets/sick2.jpg'),
+        ],
+      ),
+    );
+  }
+
+  //GELİŞTİRİCİ DANIŞMAN VEYA DOKTOR EKLE TAB'I
+  Widget _buildDanismanDoktorUserForm() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 10),
+            MyTextField(
+              text: "Ad Soyad",
+              controller: _devAdvisorName,
+              onchanged: (_) {},
+            ),
+            const SizedBox(height: 10),
+            MyTextField(
+              text: "E-Posta",
+              controller: _devAdvisorEmail,
+              onchanged: (_) {},
+            ),
+            const SizedBox(height: 10),
+            MyTextField(
+              text: "Geçici Şifre",
+              controller: _devAdvisorPass,
+              onchanged: (_) {},
+            ),
+            const SizedBox(height: 10),
+            MyButton(
+              buttonclick: () {},
+              buttontext: "Danışman Oluştur",
+              textcolor: Colors.white,
+              backcolor: Colors.blue,
+              height: 46,
+              width: double.infinity,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  //GELİŞTİRİCİ DOKTOR EKLE TAB'I
+  Widget _buildDoktorUserForm() {
+    final _clinicName = TextEditingController();
+    final _clinicPhone = TextEditingController();
+    final _clinicAddress = TextEditingController();
+
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            MyTextField(
+              text: "Klinik Adı",
+              controller: _clinicName,
+              onchanged: (_) {},
+            ),
+            const SizedBox(height: 10),
+            MyTextField(
+              text: "Telefon",
+              controller: _clinicPhone,
+              onchanged: (_) {},
+            ),
+            const SizedBox(height: 10),
+            MyTextField(
+              text: "Adres",
+              controller: _clinicAddress,
+              onchanged: (_) {},
+            ),
+            const SizedBox(height: 20),
+            MyButton(
+              buttonclick: () {
+                // TODO: klinik kaydı
+              },
+              buttontext: "Klinik Kaydet",
+              textcolor: Colors.white,
+              backcolor: Colors.teal,
+              height: 54,
+              width: double.infinity,
+            ),
           ],
         ),
       ),

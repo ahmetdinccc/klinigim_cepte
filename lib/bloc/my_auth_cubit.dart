@@ -1,9 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hasta_takip/bloc/my_auth_state.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../repository/auth_repository.dart';
 import 'my_auth_state.dart' as my;
-
 
 class AuthCubit extends Cubit<my.AuthState> {
   final AuthRepository _authRepository;
@@ -12,22 +10,27 @@ class AuthCubit extends Cubit<my.AuthState> {
 
   /// danışman / doktor / geliştirici hepsi buradan login olacak
   Future<void> getSignIn(String email, String password) async {
-    emit(AuthLoading());
+    emit(my.AuthLoading());
     try {
+      // ufak normalizasyon
       final result = await _authRepository.signInWithEmailAndPassword(
-        email: email,
-        password: password,
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
       );
 
-      emit(LoggedIn(user: result.user, role: result.role));
+      // burada rolü de normalize edip gönderelim
+      final normalizedRole = result.role.trim(); // developer , developer  gibi durumlar için
+      // ignore: avoid_print
+      print('✅ AuthCubit -> giriş başarılı. ROLE: "$normalizedRole"');
+
+      emit(my.LoggedIn(user: result.user, role: normalizedRole));
     } on AuthException catch (e) {
       // supabase'ten gelen auth hatası
-      emit(AuthError(e.message));
+      emit(my.AuthError(e.message));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(my.AuthError(e.toString()));
     }
   }
-  
 
   /// geliştirici panelinden kullanıcı oluşturma
   Future<void> createUserFromDeveloper({
@@ -38,32 +41,32 @@ class AuthCubit extends Cubit<my.AuthState> {
     required String role, // doctor | advisor | developer
     String? clinicId,
   }) async {
-    emit(AuthLoading());
+    emit(my.AuthLoading());
     try {
       final result = await _authRepository.signUpWithRole(
-        email: email,
-        password: password,
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
         fullName: fullName,
         phone: phone,
-        role: role,
+        role: role.trim().toLowerCase(), // backend hep ingilizce tutsun
         clinicId: clinicId,
       );
 
-      emit(SignedUp(user: result.user, role: result.role));
+      emit(my.SignedUp(user: result.user, role: result.role));
     } on AuthException catch (e) {
-      emit(AuthError(e.message));
+      emit(my.AuthError(e.message));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(my.AuthError(e.toString()));
     }
   }
 
   Future<void> signOut() async {
-    emit(AuthLoading());
+    emit(my.AuthLoading());
     try {
       await _authRepository.signOut();
-      emit(LoggedOut());
+      emit(my.LoggedOut());
     } catch (e) {
-      emit(AuthError("Çıkış yapılamadı: $e"));
+      emit(my.AuthError("Çıkış yapılamadı: $e"));
     }
   }
 }

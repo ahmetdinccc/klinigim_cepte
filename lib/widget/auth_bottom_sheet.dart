@@ -9,6 +9,7 @@ import 'package:another_flushbar/flushbar.dart';
 class AuthBottomSheet extends StatefulWidget {
   final String userType; // "Danışman" | "Doktor" | "Geliştirici"
   final BuildContext parentContext;
+
   const AuthBottomSheet({
     super.key,
     required this.userType,
@@ -42,6 +43,18 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    _emailSecretary.dispose();
+    _passSecretary.dispose();
+    _emailDoctor.dispose();
+    _passDoctor.dispose();
+    _emailDev.dispose();
+    _passDev.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocListener<AuthCubit, my.AuthState>(
       listener: (context, state) {
@@ -55,20 +68,39 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
             backgroundColor: const Color.fromARGB(255, 175, 76, 76),
           ).show(context);
         } else if (state is my.LoggedIn) {
+          // 👉 asıl nav'ı parent context ile yapalım
+          final navCtx = widget.parentContext;
           final role = state.role.toLowerCase();
-          if (role == 'developer' || role == 'gelistirici') {
-            Navigator.pushReplacementNamed(context, '/homedeveloper');
+
+          if (role == 'developer' ||
+              role == 'gelistirici' ||
+              role == 'geliştirici') {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/homedeveloper',
+              (route) => false,
+            );
           } else if (role == 'doctor' || role == 'doktor') {
-            Navigator.pushReplacementNamed(context, '/homedoctor');
-          } else if (role == 'advisor' || role == 'danışman') {
-            Navigator.pushReplacementNamed(context, '/homeadvisor');
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/homedoctor',
+              (route) => false,
+            );
+          } else if (role == 'advisor' ||
+              role == 'danışman' ||
+              role == 'danisman') {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/homeadvisor',
+              (route) => false,
+            );
           } else {
             Flushbar(
               flushbarPosition: FlushbarPosition.TOP,
               animationDuration: const Duration(milliseconds: 500),
               forwardAnimationCurve: Curves.easeOut,
               reverseAnimationCurve: Curves.easeIn,
-              message: "Bilinmeyen kullanıcı rolü $role",
+              message: "Bilinmeyen kullanıcı rolü: $role",
               backgroundColor: Colors.green,
             ).show(context);
           }
@@ -76,7 +108,6 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
       },
       child: Container(
         height: MediaQuery.of(context).size.height,
-
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
@@ -118,7 +149,9 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
   }
 
   Widget _buildLoginTab() {
-    if (widget.userType == "danışman") {
+    final type = widget.userType.toLowerCase();
+
+    if (type == "danışman" || type == "danisman" || type == "advisor") {
       return _loginForm(
         rootContext: widget.parentContext,
         emailController: _emailSecretary,
@@ -128,7 +161,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
       );
     }
 
-    if (widget.userType == "doktor") {
+    if (type == "doktor" || type == "doctor") {
       return _loginForm(
         rootContext: widget.parentContext,
         emailController: _emailDoctor,
@@ -138,7 +171,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
       );
     }
 
-    // geliştirici
+    // geliştirici (default)
     return _loginForm(
       rootContext: widget.parentContext,
       emailController: _emailDev,
@@ -176,6 +209,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
               buttonclick: () {
                 final email = emailController.text.trim();
                 final pass = passController.text.trim();
+
                 if (email.isEmpty || pass.isEmpty) {
                   Flushbar(
                     flushbarPosition: FlushbarPosition.TOP,
@@ -185,7 +219,6 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
                     message: "Lütfen tüm alanları doldurun",
                     backgroundColor: const Color.fromARGB(255, 175, 76, 76),
                   ).show(context);
-
                   return;
                 }
 
@@ -197,6 +230,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
               height: 54,
               width: double.infinity,
             ),
+            const SizedBox(height: 20),
             img,
           ],
         ),
