@@ -87,9 +87,9 @@ class _HomeDeveloperState extends State<HomeDeveloper> {
           onPressed: () {
             showRoleBottomSheet(context, "geliştirici");
           },
-          child: const Icon(Icons.add, color: Colors.white),
 
           backgroundColor: const Color(0xFF0EBE80),
+          child: const Icon(Icons.add, color: Colors.white),
         ),
       ),
     );

@@ -9,7 +9,7 @@ class ShowDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _hizmetController = TextEditingController();
+    final TextEditingController hizmetController = TextEditingController();
 
     return AlertDialog(
       title: Text(title),
@@ -18,7 +18,7 @@ class ShowDialog extends StatelessWidget {
         children: [
           MyTextField(
             text: "Hizmet Adı",
-            controller: _hizmetController,
+            controller: hizmetController,
             onchanged: (value) {},
           ),
           SizedBox(height: 10),

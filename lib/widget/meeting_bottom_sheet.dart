@@ -309,9 +309,9 @@ class _MyBottomSheetState extends State<MyBottomSheet>
 
   //GELİŞTİRİCİ DOKTOR EKLE TAB'I
   Widget _buildDoktorUserForm() {
-    final _clinicName = TextEditingController();
-    final _clinicPhone = TextEditingController();
-    final _clinicAddress = TextEditingController();
+    final clinicName = TextEditingController();
+    final clinicPhone = TextEditingController();
+    final clinicAddress = TextEditingController();
 
     return Padding(
       padding: const EdgeInsets.all(20),
@@ -320,19 +320,19 @@ class _MyBottomSheetState extends State<MyBottomSheet>
           children: [
             MyTextField(
               text: "Klinik Adı",
-              controller: _clinicName,
+              controller: clinicName,
               onchanged: (_) {},
             ),
             const SizedBox(height: 10),
             MyTextField(
               text: "Telefon",
-              controller: _clinicPhone,
+              controller: clinicPhone,
               onchanged: (_) {},
             ),
             const SizedBox(height: 10),
             MyTextField(
               text: "Adres",
-              controller: _clinicAddress,
+              controller: clinicAddress,
               onchanged: (_) {},
             ),
             const SizedBox(height: 20),
