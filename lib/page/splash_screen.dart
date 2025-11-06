@@ -1,23 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:hasta_takip/bloc/my_auth_cubit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:hasta_takip/bloc/auth_cubit.dart';
 import 'package:hasta_takip/widget/auth_bottom_sheet.dart';
 import 'package:hasta_takip/widget/button.dart';
 import 'package:hasta_takip/widget/meeting_bottom_sheet.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
+// bu ikisi local cubit gerekirse oluşturmak için
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hasta_takip/repository/auth_repository.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // 🔑 Üstte AuthCubit var mı? (yoksa null döner)
+    AuthCubit? existingCubit;
+    try {
+      existingCubit = context.read<AuthCubit>(); // varsa alır
+    } catch (_) {
+      existingCubit = null; // yoksa null
+    }
+
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          //LOGO
+          // LOGO
           SizedBox(height: 400, child: Image.asset('assets/image.png')),
 
-          SizedBox(height: 136),
+          const SizedBox(height: 136),
 
           Expanded(
             child: Stack(
@@ -25,25 +38,38 @@ class SplashScreen extends StatelessWidget {
                 Positioned.fill(
                   child: Image.asset('assets/image2.png', fit: BoxFit.cover),
                 ),
-
                 SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Column(
                     children: [
-                      // DANIŞMAN BUTONU
+                      // DANIŞMAN
                       MyButton(
                         buttonclick: () {
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
-                            builder: (context) {
-                              return BlocProvider.value(
-                                value: context.read<AuthCubit>(),
-                                child: AuthBottomSheet(
-                                  userType: "Danışman",
-                                  parentContext: context,
-                                ),
-                              );
+                            builder: (sheetCtx) {
+                              if (existingCubit != null) {
+                                // ✅ Üstte provider var: aynı cubit’i paylaş
+                                return BlocProvider.value(
+                                  value: existingCubit,
+                                  child: AuthBottomSheet(
+                                    userType: "Danışman",
+                                    parentContext: context,
+                                  ),
+                                );
+                              } else {
+                                // ✅ Üstte yok: local cubit oluştur
+                                return BlocProvider(
+                                  create: (_) => AuthCubit(
+                                    AuthRepository(auth: FirebaseAuth.instance),
+                                  ),
+                                  child: AuthBottomSheet(
+                                    userType: "Danışman",
+                                    parentContext: context,
+                                  ),
+                                );
+                              }
                             },
                           );
                         },
@@ -56,7 +82,7 @@ class SplashScreen extends StatelessWidget {
 
                       const SizedBox(height: 16),
 
-                      // DOKTOR BUTONU
+                      // DOKTOR
                       MyButton(
                         buttonclick: () {
                           showModalBottomSheet(
@@ -67,14 +93,26 @@ class SplashScreen extends StatelessWidget {
                                 top: Radius.circular(25),
                               ),
                             ),
-                            builder: (context) {
-                              return BlocProvider.value(
-                                value: context.read<AuthCubit>(),
-                                child: AuthBottomSheet(
-                                  userType: "Doktor",
-                                  parentContext: context,
-                                ),
-                              );
+                            builder: (sheetCtx) {
+                              if (existingCubit != null) {
+                                return BlocProvider.value(
+                                  value: existingCubit,
+                                  child: AuthBottomSheet(
+                                    userType: "Doktor",
+                                    parentContext: context,
+                                  ),
+                                );
+                              } else {
+                                return BlocProvider(
+                                  create: (_) => AuthCubit(
+                                    AuthRepository(auth: FirebaseAuth.instance),
+                                  ),
+                                  child: AuthBottomSheet(
+                                    userType: "Doktor",
+                                    parentContext: context,
+                                  ),
+                                );
+                              }
                             },
                           );
                         },
@@ -86,6 +124,8 @@ class SplashScreen extends StatelessWidget {
                       ),
 
                       const SizedBox(height: 16),
+
+                      // HASTA – dokunmadım
                       MyButton(
                         buttonclick: () {
                           showModalBottomSheet(
@@ -106,6 +146,8 @@ class SplashScreen extends StatelessWidget {
                         height: 54,
                         width: double.infinity,
                       ),
+
+                      // GELİŞTİRİCİ
                       TextButton(
                         onPressed: () {
                           showModalBottomSheet(
@@ -116,14 +158,26 @@ class SplashScreen extends StatelessWidget {
                                 top: Radius.circular(25),
                               ),
                             ),
-                            builder: (context) {
-                              return BlocProvider.value(
-                                value: context.read<AuthCubit>(),
-                                child: AuthBottomSheet(
-                                  parentContext: context,
-                                  userType: "Gelistirici",
-                                ),
-                              );
+                            builder: (sheetCtx) {
+                              if (existingCubit != null) {
+                                return BlocProvider.value(
+                                  value: existingCubit,
+                                  child: AuthBottomSheet(
+                                    parentContext: context,
+                                    userType: "Gelistirici",
+                                  ),
+                                );
+                              } else {
+                                return BlocProvider(
+                                  create: (_) => AuthCubit(
+                                    AuthRepository(auth: FirebaseAuth.instance),
+                                  ),
+                                  child: AuthBottomSheet(
+                                    parentContext: context,
+                                    userType: "Gelistirici",
+                                  ),
+                                );
+                              }
                             },
                           );
                         },

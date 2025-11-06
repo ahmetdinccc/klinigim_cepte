@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:another_flushbar/flushbar.dart';
+
 import 'package:hasta_takip/widget/button.dart';
 import 'package:hasta_takip/widget/text_field.dart';
-import 'package:hasta_takip/bloc/my_auth_cubit.dart';
-import 'package:hasta_takip/bloc/my_auth_state.dart' as my;
-import 'package:another_flushbar/flushbar.dart';
+import 'package:hasta_takip/bloc/auth_cubit.dart';
+import 'package:hasta_takip/bloc/auth_state.dart' as my;
 
 class AuthBottomSheet extends StatefulWidget {
   final String userType; // "Danışman" | "Doktor" | "Geliştirici"
@@ -56,7 +57,11 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
 
   @override
   Widget build(BuildContext context) {
+    // 🔑 Cubit'i parentContext'ten al: BottomSheet kendi context'inde provider aramayacak
+    final authCubit = BlocProvider.of<AuthCubit>(widget.parentContext);
+
     return BlocListener<AuthCubit, my.AuthState>(
+      bloc: authCubit, // ← kritik
       listener: (context, state) {
         if (state is my.AuthError) {
           Flushbar(
@@ -68,29 +73,26 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
             backgroundColor: const Color.fromARGB(255, 175, 76, 76),
           ).show(context);
         } else if (state is my.LoggedIn) {
-          // 👉 asıl nav'ı parent context ile yapalım
-          final navCtx = widget.parentContext;
           final role = state.role.toLowerCase();
 
-          if (role == 'developer' ||
-              role == 'gelistirici' ||
-              role == 'geliştirici') {
+          // BottomSheet'i kapat ve parent context ile nav yap
+          Navigator.of(context).maybePop();
+
+          if (role == 'developer' || role == 'gelistirici' || role == 'geliştirici') {
             Navigator.pushNamedAndRemoveUntil(
-              context,
+              widget.parentContext,
               '/homedeveloper',
               (route) => false,
             );
           } else if (role == 'doctor' || role == 'doktor') {
             Navigator.pushNamedAndRemoveUntil(
-              context,
+              widget.parentContext,
               '/homedoctor',
               (route) => false,
             );
-          } else if (role == 'advisor' ||
-              role == 'danışman' ||
-              role == 'danisman') {
+          } else if (role == 'advisor' || role == 'danışman' || role == 'danisman') {
             Navigator.pushNamedAndRemoveUntil(
-              context,
+              widget.parentContext,
               '/homeadvisor',
               (route) => false,
             );
@@ -139,7 +141,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: [_buildLoginTab()],
+                children: [_buildLoginTab(authCubit)],
               ),
             ),
           ],
@@ -148,11 +150,12 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
     );
   }
 
-  Widget _buildLoginTab() {
+  Widget _buildLoginTab(AuthCubit authCubit) {
     final type = widget.userType.toLowerCase();
 
     if (type == "danışman" || type == "danisman" || type == "advisor") {
       return _loginForm(
+        authCubit: authCubit,
         rootContext: widget.parentContext,
         emailController: _emailSecretary,
         passController: _passSecretary,
@@ -163,6 +166,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
 
     if (type == "doktor" || type == "doctor") {
       return _loginForm(
+        authCubit: authCubit,
         rootContext: widget.parentContext,
         emailController: _emailDoctor,
         passController: _passDoctor,
@@ -173,6 +177,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
 
     // geliştirici (default)
     return _loginForm(
+      authCubit: authCubit,
       rootContext: widget.parentContext,
       emailController: _emailDev,
       passController: _passDev,
@@ -182,6 +187,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
   }
 
   Widget _loginForm({
+    required AuthCubit authCubit,          
     required BuildContext rootContext,
     required TextEditingController emailController,
     required TextEditingController passController,
@@ -203,6 +209,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
               text: "Şifre",
               controller: passController,
               onchanged: (_) {},
+              isPassword: true,
             ),
             const SizedBox(height: 20),
             MyButton(
@@ -222,7 +229,8 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
                   return;
                 }
 
-                rootContext.read<AuthCubit>().getSignIn(email, pass);
+                
+                authCubit.getSignIn(email, pass);
               },
               buttontext: "Giriş Yap",
               textcolor: Colors.white,

@@ -1,114 +1,79 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class AuthRepository {
-  final SupabaseClient _client;
-  AuthRepository(this._client);
 
-  /// -------------------------
-  /// 1) LOGIN (email + şifre)
-  /// -------------------------
-  Future<AuthResult> signInWithEmailAndPassword({
+  final FirebaseAuth auth;
+
+  AuthRepository({required this.auth});
+
+  Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
     try {
-      final res = await _client.auth.signInWithPassword(
-        email: email.trim(),
-        password: password.trim(),
+      UserCredential userCredential = await auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
 
-      final user = res.user;
-      if (user == null) {
-        throw Exception("Kullanıcı bulunamadı");
-      }
-
-      // user_roles tablosundan rolü çek
-      final roleRow = await _client
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-      // boş gelirse developer diyelim
-      final role = (roleRow?['role'] as String? ?? 'developer').trim();
-
-      return AuthResult(user: user, role: role);
-    } on AuthException catch (e) {
-      // Supabase'in kendi hatası
-      throw AuthException(e.message, statusCode: e.statusCode);
+      if (kDebugMode) print('Kullanıcı girişi başarılı');
+      return userCredential;
     } catch (e) {
-      throw Exception("Giriş sırasında hata: $e");
+      if (kDebugMode) print('Giriş hatası: $e');
+      throw Exception('Giriş başarısız: Email veya şifre yanlış.');
     }
   }
 
-  /// ------------------------------------------------
-  /// 2) SIGN UP (geliştirici panelinden kullanıcı ekle)
-  ///    - auth.users'a user ekler
-  ///    - user_roles tablosuna rol yazar
-  ///    - (varsa) profiles tablosuna extra info yazar
-  /// ------------------------------------------------
-  Future<AuthResult> signUpWithRole({
+
+Future<UserCredential> signUp({
+ required String clinicname,
+    required String name,
     required String email,
     required String password,
-    required String fullName,
     required String phone,
-    required String role, // "doctor" | "advisor" | "developer"
-    String? clinicId,
+    required String role,
+
   }) async {
-    // 1) önce auth'a kaydet
-    final res = await _client.auth.signUp(
-      email: email.trim().toLowerCase(),
-      password: password.trim(),
-      data: {
-        'full_name': fullName,
-        'phone': phone,
-        'role': role.trim().toLowerCase(),
-      },
-    );
-
-    final user = res.user;
-    if (user == null) {
-      throw Exception("Kullanıcı oluşturulamadı (email doğrulama açık olabilir)");
-    }
-
-    final userId = user.id;
-
-    // 2) user_roles tablosuna yaz
-    await _client.from('user_roles').insert({
-      'user_id': userId,
-      'role': role.trim().toLowerCase(),
-      if (clinicId != null) 'clinic_id': clinicId,
-    });
-
-    // 3) profiles tablosuna da yazmak istersen (RLS açıksa hata verebilir)
     try {
-      await _client.from('profiles').insert({
-        'id': userId,
-        'full_name': fullName,
-        'phone': phone,
-        'role': role.trim().toLowerCase(),
-        'clinic_id': clinicId,
+      final userCredential = await auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+'clinicName':clinicname,
+        'name': name,
+        'email': email,
+        'password':password,
+        'phone':phone,
+      
+        'role':role,
+
       });
+
+      if (kDebugMode) print('Kullanıcı oluşturuldu');
+      return userCredential;
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) print('FirebaseAuthException: ${e.code}');
+      rethrow;
     } catch (e) {
-      // profiles kapalıysa app patlamasın
-      // debug için bakarsın
-      // print('profiles insert error: $e');
+      if (kDebugMode) print('Hata: $e');
+      throw Exception('Kayıt başarısız');
     }
-
-    return AuthResult(user: user, role: role.trim().toLowerCase());
   }
 
-  /// -------------------------
-  /// 3) LOGOUT
-  /// -------------------------
-  Future<void> signOut() async {
-    await _client.auth.signOut();
-  }
-}
 
-/// küçük model
-class AuthResult {
-  final User user;
-  final String role;
-  AuthResult({required this.user, required this.role});
+  Future<void> loggedOut() async {
+    try {
+      await auth.signOut();
+      if (kDebugMode) print('Çıkış yapıldı');
+    } catch (e) {
+      if (kDebugMode) print('Çıkış hatası: $e');
+    }
+  }
+
 }

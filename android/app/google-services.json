@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "349068557799",
+    "project_id": "klinigim-cepte",
+    "storage_bucket": "klinigim-cepte.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:349068557799:android:8e43ee0553d94e33af5142",
+        "android_client_info": {
+          "package_name": "com.example.hasta_takip"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtbv2Mk7CCiZRjRXbx-h0iwmz1DjBa5-s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
