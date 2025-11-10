@@ -48,9 +48,7 @@ class AuthCubit extends Cubit<AuthState> {
         emit(LoggedIn(userCredential: response, role: 'advisor'));
         return;
       }
-      
 
-  
       // Hiçbirinde yoksa:
       emit(AuthError('Kullanıcı rolü bulunamadı'));
     } on FirebaseAuthException catch (e) {
@@ -58,7 +56,11 @@ class AuthCubit extends Cubit<AuthState> {
     } on FirebaseException catch (e) {
       emit(AuthError('Firestore hatası: ${e.message}'));
     } catch (e) {
-      emit(AuthError('Beklenmeyen hata: $e'));
+      emit(
+        AuthError(
+          'email ve şifre alanları yanlış lüften doğru bilgileri giriniz',
+        ),
+      );
     }
   }
 

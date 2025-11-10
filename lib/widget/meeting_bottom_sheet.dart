@@ -81,7 +81,7 @@ class _MyBottomSheetState extends State<MyBottomSheet>
           ),
           const SizedBox(height: 20),
           Text(
-            "Danışman / Doktor Ekle",
+            "${widget.userType}",
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),

@@ -54,42 +54,15 @@ class SplashScreen extends StatelessWidget {
                                   AuthRepository(auth: FirebaseAuth.instance),
                                 ),
                                 child: const AuthBottomSheet(
-                                  userType: "Danışman",
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        buttontext: "Danışman",
-                        textcolor: const Color(0xFFFFFFFF),
-                        backcolor: const Color(0xFF0EBE80),
-                        height: 54,
-                        width: double.infinity,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // DOKTOR
-                      MyButton(
-                        buttonclick: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            builder: (sheetCtx) {
-                              return BlocProvider(
-                                create: (_) => AuthCubit(
-                                  AuthRepository(auth: FirebaseAuth.instance),
-                                ),
-                                child: const AuthBottomSheet(
                                   userType: "Doktor",
                                 ),
                               );
                             },
                           );
                         },
-                        buttontext: "Doktor",
+                        buttontext: "Danışman / Doktor / Geliştirici Girişi",
                         textcolor: const Color(0xFFFFFFFF),
-                        backcolor: const Color(0xFF02714A),
+                        backcolor: const Color(0xFF0EBE80),
                         height: 54,
                         width: double.infinity,
                       ),
@@ -116,30 +89,6 @@ class SplashScreen extends StatelessWidget {
                         backcolor: const Color.fromARGB(255, 63, 213, 160),
                         height: 54,
                         width: double.infinity,
-                      ),
-
-                      // GELİŞTİRİCİ
-                      TextButton(
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            builder: (sheetCtx) {
-                              return BlocProvider(
-                                create: (_) => AuthCubit(
-                                  AuthRepository(auth: FirebaseAuth.instance),
-                                ),
-                                child: const AuthBottomSheet(
-                                  userType: "Geliştirici",
-                                ),
-                              );
-                            },
-                          );
-                        },
-                        child: const Text(
-                          "Geliştirici",
-                          style: TextStyle(color: Colors.grey),
-                        ),
                       ),
                     ],
                   ),

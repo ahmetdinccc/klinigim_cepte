@@ -53,7 +53,6 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
 
   @override
   Widget build(BuildContext context) {
-    /// Cubit artık bottom sheet'in üstündeki BlocProvider'dan alınacak
     final authCubit = context.read<AuthCubit>();
 
     return BlocListener<AuthCubit, my.AuthState>(
@@ -69,11 +68,9 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
           ).show(context);
         } else if (state is my.LoggedIn) {
           final role = state.role.toLowerCase();
-
-          // önce bottom sheet'i kapat
           Navigator.of(context).pop();
 
-          // sonra role'e göre yönlendir
+          // role'e göre yönlendirme
           if (role == 'developer' ||
               role == 'gelistirici' ||
               role == 'geliştirici') {
@@ -103,7 +100,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
         }
       },
       child: Container(
-        height: MediaQuery.of(context).size.height,
+        height: 700,
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
@@ -121,23 +118,12 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
             ),
             const SizedBox(height: 20),
             Text(
-              "${widget.userType} Girişi",
+              "Giriş Yap",
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            TabBar(
-              controller: _tabController,
-              labelColor: Colors.teal,
-              unselectedLabelColor: Colors.grey,
-              indicatorColor: Colors.teal,
-              tabs: const [Tab(text: "Giriş Yap")],
-            ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [_buildLoginTab(authCubit)],
-              ),
-            ),
+
+            Expanded(child: _buildLoginTab(authCubit)),
           ],
         ),
       ),
@@ -167,7 +153,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
       );
     }
 
-    // geliştirici
+    // geliştirici (default)
     return _loginForm(
       authCubit: authCubit,
       emailController: _emailDev,
@@ -189,12 +175,13 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
       child: SingleChildScrollView(
         child: Column(
           children: [
+            const SizedBox(height: 10),
             MyTextField(
               text: "E-Posta",
               controller: emailController,
               onchanged: (_) {},
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 15),
             MyTextField(
               text: "Şifre",
               controller: passController,
@@ -215,6 +202,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
                     reverseAnimationCurve: Curves.easeIn,
                     message: "Lütfen tüm alanları doldurun",
                     backgroundColor: const Color.fromARGB(255, 175, 76, 76),
+                    duration: Duration(seconds: 2),
                   ).show(context);
                   return;
                 }
