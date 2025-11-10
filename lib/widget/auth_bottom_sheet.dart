@@ -8,14 +8,10 @@ import 'package:hasta_takip/bloc/auth_cubit.dart';
 import 'package:hasta_takip/bloc/auth_state.dart' as my;
 
 class AuthBottomSheet extends StatefulWidget {
-  final String userType; // "Danışman" | "Doktor" | "Geliştirici"
-  final BuildContext parentContext;
+  /// "Danışman" | "Doktor" | "Gelistirici"
+  final String userType;
 
-  const AuthBottomSheet({
-    super.key,
-    required this.userType,
-    required this.parentContext,
-  });
+  const AuthBottomSheet({super.key, required this.userType});
 
   @override
   State<AuthBottomSheet> createState() => _AuthBottomSheetState();
@@ -57,11 +53,10 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
 
   @override
   Widget build(BuildContext context) {
-    // 🔑 Cubit'i parentContext'ten al: BottomSheet kendi context'inde provider aramayacak
-    final authCubit = BlocProvider.of<AuthCubit>(widget.parentContext);
+    /// Cubit artık bottom sheet'in üstündeki BlocProvider'dan alınacak
+    final authCubit = context.read<AuthCubit>();
 
     return BlocListener<AuthCubit, my.AuthState>(
-      bloc: authCubit, // ← kritik
       listener: (context, state) {
         if (state is my.AuthError) {
           Flushbar(
@@ -75,27 +70,26 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
         } else if (state is my.LoggedIn) {
           final role = state.role.toLowerCase();
 
-          // BottomSheet'i kapat ve parent context ile nav yap
-          Navigator.of(context).maybePop();
+          // önce bottom sheet'i kapat
+          Navigator.of(context).pop();
 
-          if (role == 'developer' || role == 'gelistirici' || role == 'geliştirici') {
-            Navigator.pushNamedAndRemoveUntil(
-              widget.parentContext,
-              '/homedeveloper',
-              (route) => false,
-            );
+          // sonra role'e göre yönlendir
+          if (role == 'developer' ||
+              role == 'gelistirici' ||
+              role == 'geliştirici') {
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/homedeveloper', (route) => false);
           } else if (role == 'doctor' || role == 'doktor') {
-            Navigator.pushNamedAndRemoveUntil(
-              widget.parentContext,
-              '/homedoctor',
-              (route) => false,
-            );
-          } else if (role == 'advisor' || role == 'danışman' || role == 'danisman') {
-            Navigator.pushNamedAndRemoveUntil(
-              widget.parentContext,
-              '/homeadvisor',
-              (route) => false,
-            );
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/homedoctor', (route) => false);
+          } else if (role == 'advisor' ||
+              role == 'danışman' ||
+              role == 'danisman') {
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/homeadvisor', (route) => false);
           } else {
             Flushbar(
               flushbarPosition: FlushbarPosition.TOP,
@@ -156,7 +150,6 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
     if (type == "danışman" || type == "danisman" || type == "advisor") {
       return _loginForm(
         authCubit: authCubit,
-        rootContext: widget.parentContext,
         emailController: _emailSecretary,
         passController: _passSecretary,
         buttonColor: const Color(0xFF0EBE80),
@@ -167,7 +160,6 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
     if (type == "doktor" || type == "doctor") {
       return _loginForm(
         authCubit: authCubit,
-        rootContext: widget.parentContext,
         emailController: _emailDoctor,
         passController: _passDoctor,
         buttonColor: const Color(0xFF02714A),
@@ -175,10 +167,9 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
       );
     }
 
-    // geliştirici (default)
+    // geliştirici
     return _loginForm(
       authCubit: authCubit,
-      rootContext: widget.parentContext,
       emailController: _emailDev,
       passController: _passDev,
       buttonColor: const Color(0xFF02714A),
@@ -187,8 +178,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
   }
 
   Widget _loginForm({
-    required AuthCubit authCubit,          
-    required BuildContext rootContext,
+    required AuthCubit authCubit,
     required TextEditingController emailController,
     required TextEditingController passController,
     required Color buttonColor,
@@ -229,7 +219,6 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
                   return;
                 }
 
-                
                 authCubit.getSignIn(email, pass);
               },
               buttontext: "Giriş Yap",

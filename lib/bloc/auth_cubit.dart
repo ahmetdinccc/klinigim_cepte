@@ -1,45 +1,68 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // 🔥 EKLE
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../repository/auth_repository.dart';
 import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository _userRepository;
+  final FirebaseFirestore _firestore;
 
-  AuthCubit(this._userRepository) : super(AuthInitial());
+  AuthCubit(this._userRepository, {FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      super(AuthInitial());
 
+  /// GİRİŞ
+
+  /// developers / doctors / advisors koleksiyonlarında rolü bulur.
   Future<void> getSignIn(String email, String password) async {
     emit(AuthLoading());
+
     try {
+      // Firebase Auth login
       final response = await _userRepository.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       final uid = response.user!.uid;
-      final snap = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
 
-      if (!snap.exists) {
-        emit(AuthError('Kullanıcı profili bulunamadı (users/{uid}).'));
+      // DEVELOPER
+      final devDoc = await _firestore.collection('developers').doc(uid).get();
+      if (devDoc.exists) {
+        emit(LoggedIn(userCredential: response, role: 'developer'));
         return;
       }
 
-      final role = (snap.data()?['role'] as String?)?.trim();
-      if (role == null || role.isEmpty) {
-        emit(AuthError('Kullanıcı rolü boş veya tanımsız.'));
+      // DOCTOR
+      final doctorDoc = await _firestore.collection('doctors').doc(uid).get();
+      if (doctorDoc.exists) {
+        emit(LoggedIn(userCredential: response, role: 'doctor'));
         return;
       }
 
-      emit(LoggedIn(userCredential: response, role: role));
+      // ADVISOR
+      final advisorDoc = await _firestore.collection('advisors').doc(uid).get();
+      if (advisorDoc.exists) {
+        emit(LoggedIn(userCredential: response, role: 'advisor'));
+        return;
+      }
+      
+
+  
+      // Hiçbirinde yoksa:
+      emit(AuthError('Kullanıcı rolü bulunamadı'));
+    } on FirebaseAuthException catch (e) {
+      emit(AuthError(e.message ?? 'Giriş başarısız.'));
+    } on FirebaseException catch (e) {
+      emit(AuthError('Firestore hatası: ${e.message}'));
     } catch (e) {
-      emit(AuthError(e.toString()));
+      emit(AuthError('Beklenmeyen hata: $e'));
     }
   }
 
+  /// KAYIT
   Future<void> signUp({
     required String name,
     required String email,
@@ -56,7 +79,7 @@ class AuthCubit extends Cubit<AuthState> {
         email: email,
         password: password,
         phone: phone,
-        role: role, // 🔥 repo Firestore'a bu role'ü yazmalı
+        role: role,
       );
       emit(SignedUp(userCredential: userCredential));
     } on FirebaseAuthException catch (e) {
@@ -67,28 +90,6 @@ class AuthCubit extends Cubit<AuthState> {
       }
     } catch (e) {
       emit(AuthError(e.toString()));
-    }
-  }
-
-  Future<void> signInWithGitHub(String accessToken) async {
-    emit(AuthLoading());
-    try {
-      final credential = GithubAuthProvider.credential(accessToken);
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(
-        credential,
-      );
-
-      // GitHub ile girişte de rolü çek
-      final uid = userCredential.user!.uid;
-      final snap = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
-      final role = (snap.data()?['role'] as String?)?.trim() ?? 'unknown';
-
-      emit(LoggedIn(userCredential: userCredential, role: role));
-    } catch (e) {
-      emit(AuthError("GitHub ile giriş başarısız: $e"));
     }
   }
 

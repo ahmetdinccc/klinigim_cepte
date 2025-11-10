@@ -49,27 +49,14 @@ class SplashScreen extends StatelessWidget {
                             context: context,
                             isScrollControlled: true,
                             builder: (sheetCtx) {
-                              if (existingCubit != null) {
-                                // ✅ Üstte provider var: aynı cubit’i paylaş
-                                return BlocProvider.value(
-                                  value: existingCubit,
-                                  child: AuthBottomSheet(
-                                    userType: "Danışman",
-                                    parentContext: context,
-                                  ),
-                                );
-                              } else {
-                                // ✅ Üstte yok: local cubit oluştur
-                                return BlocProvider(
-                                  create: (_) => AuthCubit(
-                                    AuthRepository(auth: FirebaseAuth.instance),
-                                  ),
-                                  child: AuthBottomSheet(
-                                    userType: "Danışman",
-                                    parentContext: context,
-                                  ),
-                                );
-                              }
+                              return BlocProvider(
+                                create: (_) => AuthCubit(
+                                  AuthRepository(auth: FirebaseAuth.instance),
+                                ),
+                                child: const AuthBottomSheet(
+                                  userType: "Danışman",
+                                ),
+                              );
                             },
                           );
                         },
@@ -88,31 +75,15 @@ class SplashScreen extends StatelessWidget {
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(25),
-                              ),
-                            ),
                             builder: (sheetCtx) {
-                              if (existingCubit != null) {
-                                return BlocProvider.value(
-                                  value: existingCubit,
-                                  child: AuthBottomSheet(
-                                    userType: "Doktor",
-                                    parentContext: context,
-                                  ),
-                                );
-                              } else {
-                                return BlocProvider(
-                                  create: (_) => AuthCubit(
-                                    AuthRepository(auth: FirebaseAuth.instance),
-                                  ),
-                                  child: AuthBottomSheet(
-                                    userType: "Doktor",
-                                    parentContext: context,
-                                  ),
-                                );
-                              }
+                              return BlocProvider(
+                                create: (_) => AuthCubit(
+                                  AuthRepository(auth: FirebaseAuth.instance),
+                                ),
+                                child: const AuthBottomSheet(
+                                  userType: "Doktor",
+                                ),
+                              );
                             },
                           );
                         },
@@ -125,7 +96,7 @@ class SplashScreen extends StatelessWidget {
 
                       const SizedBox(height: 16),
 
-                      // HASTA – dokunmadım
+                      // HASTA
                       MyButton(
                         buttonclick: () {
                           showModalBottomSheet(
@@ -153,31 +124,15 @@ class SplashScreen extends StatelessWidget {
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(25),
-                              ),
-                            ),
                             builder: (sheetCtx) {
-                              if (existingCubit != null) {
-                                return BlocProvider.value(
-                                  value: existingCubit,
-                                  child: AuthBottomSheet(
-                                    parentContext: context,
-                                    userType: "Gelistirici",
-                                  ),
-                                );
-                              } else {
-                                return BlocProvider(
-                                  create: (_) => AuthCubit(
-                                    AuthRepository(auth: FirebaseAuth.instance),
-                                  ),
-                                  child: AuthBottomSheet(
-                                    parentContext: context,
-                                    userType: "Gelistirici",
-                                  ),
-                                );
-                              }
+                              return BlocProvider(
+                                create: (_) => AuthCubit(
+                                  AuthRepository(auth: FirebaseAuth.instance),
+                                ),
+                                child: const AuthBottomSheet(
+                                  userType: "Geliştirici",
+                                ),
+                              );
                             },
                           );
                         },
