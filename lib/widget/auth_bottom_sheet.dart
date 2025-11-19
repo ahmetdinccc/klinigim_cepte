@@ -153,7 +153,7 @@ class _AuthBottomSheetState extends State<AuthBottomSheet>
       );
     }
 
-    // geliştirici (default)
+    // geliştirici
     return _loginForm(
       authCubit: authCubit,
       emailController: _emailDev,

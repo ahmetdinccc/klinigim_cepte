@@ -42,7 +42,6 @@ class SplashScreen extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 30),
                   child: Column(
                     children: [
-                      // DANIŞMAN
                       MyButton(
                         buttonclick: () {
                           showModalBottomSheet(

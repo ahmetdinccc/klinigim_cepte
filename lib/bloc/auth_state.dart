@@ -11,9 +11,10 @@ class AuthInitial extends AuthState {
 class AuthLoading extends AuthState {
   AuthLoading();
 }
+
 class LoggedIn extends AuthState {
   final UserCredential userCredential;
-  final String role; // 🔥 ekle
+  final String role; // 'developer', 'doctor', 'advisor'
 
   LoggedIn({required this.userCredential, required this.role});
 }
@@ -31,6 +32,4 @@ class SignedUp extends AuthState {
   final UserCredential userCredential;
 
   SignedUp({required this.userCredential});
-
-
 }
