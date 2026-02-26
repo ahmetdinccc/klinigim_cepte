@@ -13,120 +13,152 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  @override
-  Widget build(BuildContext context) {
+  // 🔹 FİREBASE'DEN VERİLERİ ÇEKEN ANA FONKSİYON
+  Future<Map<String, dynamic>> _fetchAdvisorAndClinicData() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      return const Scaffold(body: Center(child: Text("Oturum bulunamadı.")));
+    if (user == null) throw "Kullanıcı oturumu bulunamadı.";
+
+    // 1. ADIM: 'advisors' koleksiyonundan danışman bilgilerini çek
+    final advisorSnap = await FirebaseFirestore.instance
+        .collection('advisors')
+        .doc(user.uid)
+        .get();
+
+    if (!advisorSnap.exists) throw "Danışman profili bulunamadı.";
+
+    final advisorData = advisorSnap.data() as Map<String, dynamic>;
+    final String name = advisorData['name'] ?? 'İsimsiz Danışman';
+    final String? clinicId = advisorData['clinicId']; // Resimdeki: "HGcF4Tq..."
+
+    String clinicName = "Klinik Yükleniyor...";
+
+    // 2. ADIM: Eğer clinicId varsa, 'clinics' koleksiyonuna git
+    if (clinicId != null && clinicId.isNotEmpty) {
+      final clinicSnap = await FirebaseFirestore.instance
+          .collection('clinics')
+          .doc(clinicId)
+          .get();
+
+      if (clinicSnap.exists) {
+        final clinicData = clinicSnap.data() as Map<String, dynamic>;
+        // GÖRÜNTÜDEKİ KEY: 'clinicname' (Küçük harf olduğuna dikkat!)
+        clinicName = clinicData['clinicname'] ?? "İsimsiz Klinik";
+      } else {
+        clinicName = "Klinik Bulunamadı";
+      }
     }
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance
-          .collection('advisors')
-          .doc(user.uid)
-          .get(),
-      builder: (context, snapshot) {
-        // Hata
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: Center(
-              child: Text(
-                "Veri alınırken hata oluştu: ${snapshot.error}",
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
+    return {'advisorName': name, 'clinicDisplayName': clinicName};
+  }
 
-        // Doküman yoksa
-        if (!snapshot.hasData || !snapshot.data!.exists) {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _fetchAdvisorAndClinicData(),
+      builder: (context, snapshot) {
+        // Veri beklenirken yükleme ekranı
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(
-              child: Text(
-                "Danışman profili bulunamadı.\n(Firestore: developers/{uid})",
-                textAlign: TextAlign.center,
-              ),
+              child: CircularProgressIndicator(color: Color(0xFF0EBE80)),
             ),
           );
         }
 
-        // Başarılı: isim çek
-        final data = snapshot.data!.data() as Map<String, dynamic>;
-        final name = (data['name'] ?? '') as String;
+        // Hata oluşursa
+        if (snapshot.hasError) {
+          return Scaffold(body: Center(child: Text("Hata: ${snapshot.error}")));
+        }
+
+        final data = snapshot.data!;
+        final String finalClinicName = data['clinicDisplayName'];
+        final String finalAdvisorName = data['advisorName'];
 
         return Scaffold(
-          backgroundColor: const Color(0xFFE3E3E3),
-
+          backgroundColor: const Color.fromARGB(255, 227, 227, 227),
           appBar: AppBar(
             backgroundColor: const Color(0xFF0EBE80),
-
             centerTitle: true,
-            title: const Text(
-              "Kliniğim Cepte",
-              style: TextStyle(
+            title: Text(
+              finalClinicName,
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-
-          // 🔹 Sayfa içeriği
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Hoş geldin, $name👋",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  "Hoş geldin, $finalAdvisorName 👋",
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  "Günlük hasta akışını buradan kolayca takip edebilirsin.",
-                  style: TextStyle(
-                    color: Color.fromARGB(255, 70, 70, 70),
-                    fontSize: 15,
-                  ),
+                  "Günlük hasta akışını buradan takip edebilirsin.",
+                  style: TextStyle(color: Colors.black54, fontSize: 15),
                 ),
                 const SizedBox(height: 24),
 
-                // 🔸 İstatistik kartları
+                // İstatistik Kartları
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _istatistikKarti("Toplam Hasta", "24", Icons.people_alt),
-                    _istatistikKarti(
-                      "Bugün Randevu",
-                      "5",
-                      Icons.calendar_today,
+                    Expanded(
+                      child: _istatistikKarti(
+                        "Toplam Hasta",
+                        "24",
+                        Icons.people_alt,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _istatistikKarti(
+                        "Bugün Randevu",
+                        "5",
+                        Icons.calendar_today,
+                      ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _istatistikKarti("Bekleyen İşlem", "3", Icons.timer),
-                    _istatistikKarti("Tamamlanan", "18", Icons.check_circle),
+                    Expanded(
+                      child: _istatistikKarti(
+                        "Bekleyen İşlem",
+                        "3",
+                        Icons.timer,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _istatistikKarti(
+                        "Tamamlanan",
+                        "18",
+                        Icons.check_circle,
+                      ),
+                    ),
                   ],
                 ),
 
                 const SizedBox(height: 32),
-
                 const Text(
                   "Bugünkü Randevular",
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
-
                 _hastaKart("Rüştü Dinç", "10:00 - Diş Temizliği"),
                 _hastaKart("Furkan Uyar", "11:30 - Kontrol"),
                 _hastaKart("Kasım Kalaycı", "14:00 - Kanal Tedavisi"),
               ],
             ),
           ),
-
-          // 🔹 Alt navigasyon menüsü
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: _selectedIndex,
             selectedItemColor: const Color(0xFF0EBE80),
@@ -151,62 +183,48 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          floatingActionButton: SizedBox(
-            child: FloatingActionButton(
-              onPressed: () {
-                showRoleBottomSheet(context, "danışman");
-              },
-
-              backgroundColor: const Color(0xFF0EBE80),
-              child: const Icon(Icons.add, color: Colors.white),
-            ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => showRoleBottomSheet(context, "danışman"),
+            backgroundColor: const Color(0xFF0EBE80),
+            child: const Icon(Icons.add, color: Colors.white),
           ),
         );
       },
     );
   }
 
-  //Yardımcı widgetlar
-
+  // --- Yardımcı Widgetlar ---
   Widget _istatistikKarti(String baslik, String deger, IconData ikon) {
     return Container(
-      width: 165,
-      height: 120,
+      padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black,
-            blurRadius: 6,
-            offset: const Offset(0, 1),
-          ),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(ikon, color: const Color(0xFF0EBE80), size: 26),
-            const SizedBox(height: 8),
-            Text(
-              baslik,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Colors.black54,
-              ),
+      child: Column(
+        children: [
+          Icon(ikon, color: const Color(0xFF0EBE80), size: 26),
+          const SizedBox(height: 6),
+          Text(
+            baslik,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+              fontSize: 13,
             ),
-            Text(
-              deger,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF0EBE80),
-              ),
+          ),
+          Text(
+            deger,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0EBE80),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -219,7 +237,9 @@ class _HomePageState extends State<HomePage> {
         title: Text(isim, style: const TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(detay),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-        onTap: () {},
+        onTap: () {
+          // Hasta detay sayfasına yönlendirme kodu buraya gelecek
+        },
       ),
     );
   }

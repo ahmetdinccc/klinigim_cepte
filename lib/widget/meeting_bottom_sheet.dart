@@ -21,7 +21,8 @@ class _MyBottomSheetState extends State<MyBottomSheet>
   String? selectedService;
 
   // hasta / danışman form controller’ları
-  final _tcController = TextEditingController();
+  final _tcControlleradd = TextEditingController();
+  final _tcControllerpast = TextEditingController();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
 
@@ -44,7 +45,8 @@ class _MyBottomSheetState extends State<MyBottomSheet>
   @override
   void dispose() {
     _tabController.dispose();
-    _tcController.dispose();
+    _tcControlleradd.dispose();
+    _tcControllerpast.dispose();
     _nameController.dispose();
     _phoneController.dispose();
     _devAdvisorName.dispose();
@@ -141,7 +143,7 @@ class _MyBottomSheetState extends State<MyBottomSheet>
           children: [
             MyTextField(
               text: role == 'doktor' ? "Hasta TC Kimlik No" : "TC Kimlik No",
-              controller: _tcController,
+              controller: _tcControlleradd,
               onchanged: (_) {},
             ),
             const SizedBox(height: 10),
@@ -221,7 +223,7 @@ class _MyBottomSheetState extends State<MyBottomSheet>
           children: [
             MyTextField(
               text: "Hasta TC / Ad",
-              controller: _tcController,
+              controller: _tcControlleradd,
               onchanged: (_) {},
             ),
             const SizedBox(height: 10),
@@ -247,7 +249,7 @@ class _MyBottomSheetState extends State<MyBottomSheet>
         children: [
           MyTextField(
             text: "Hasta TC / Ad",
-            controller: _tcController,
+            controller: _tcControllerpast,
             onchanged: (_) {},
           ),
           const SizedBox(height: 10),
